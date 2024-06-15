@@ -1,20 +1,37 @@
 import builtins
+import pickle
 z1 = 0
 class MapManager():
     def __init__(self) -> None:
         self.model = 'block.egg'
         self.texture = "block.png"
         self.color = (0.2, 0.2, 0.35, 1)
+        self.colors = [(0.5, 0.5, 0.6, 1), 
+                       (1, 0.4, 0, 1), 
+                       (0.2, 0.7, 0.3, 1), 
+                       (0.4, 0.1, 0.9, 1)]
         self.startNew()
         self.addBlock((0, 10, 0))
     def startNew(self):
         self.land = builtins.render.attachNewNode("Land")
-    def addBlock(self, position: tuple[int, int, int]):
+    def getColor(self, z):
+        if z >= len(self.colors) - 1:
+            return self.colors[-1]
+        return self.colors[z]
+
+
+    def addBlock(self, position:  tuple[int,int,int]):
         self.block = builtins.loader.loadModel(self.model)
         texture = builtins.loader.loadTexture(self.texture)
         self.block.setTexture(texture)
+        new_color = self.getColor(position[2])
+        self.block.setColor(new_color)
         self.block.setPos(position)
         self.block.reparentTo(self.land)
+    def deleteBlock(self, pos):
+        blocks = self.findBlock(pos)
+        for b in blocks:
+            b.removeNode()
     def clear(self):
         self.land.removeNode()
         self.startNew()
@@ -39,3 +56,31 @@ class MapManager():
         print("Кількість одиниць: " + str(a))
         print("14 елемент 8 рядка: " + str(b))
         print("" + str(c))
+    def isEmpty(self, pos):
+        blocks = self.findBlock(pos)
+        return not bool(blocks)
+    def findBlock(self, pos):
+        return self.land.findAllMatches("=at="+str(pos))
+    def findhighestEmpty(self, pos):
+        x,y,z = pos
+        z = 1
+        while not self.isEmpty((x,y,z)):
+            z += 1
+        return (x,y,z)
+    def saveToBin(self):
+        blocks = self.land.getChildren()
+        with open("landbin.dat", "wb") as file:
+            pickle.dump(len(blocks), file)
+            for b in blocks:
+                #x, y, z = b.getPos()
+                #pos = int(x), int(y), int(z)
+                pos = b.getPos()
+                pos = tuple(map(int, pos))
+                pickle.dump(pos, file)
+    def loadBin(self):
+        self.clear()
+        with open("landbin.dat", "rb") as file:
+            lenght = pickle.load(file)
+            for _ in range(lenght):
+                pos = pickle.load(file)
+                self.addBlock(pos)
