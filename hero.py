@@ -1,4 +1,6 @@
 import builtins
+from direct.task.Task import Task
+from panda3d.core import WindowProperties
 class Hero:
     def __init__(self, pos:tuple, land):
         self.land = land
@@ -113,6 +115,23 @@ class Hero:
         self.land.saveToBin()
     def load(self):
         self.land.loadBin()
+    def followMouse(self, task):
+        if builtins.base.mouseWatcherNode.hasMouse():
+            mouse_pos = builtins.base.mouseWatcherNode.getMouse()
+            h = trim(mouse_pos.getX())*-180
+            p = trim(mouse_pos.getY(), mn = -0.5, mx = 0.5)*-180
+            self.hero.setH(h)
+            self.hero.setP(p)
+            props = builtins.base.win.getProperties()
+            mouse_properties = builtins.base.win.getPointer(0)
+            new_properties = WindowProperties()
+            new_properties.setCursorHidden(True)
+            builtins.base.win.requestProperties(new_properties)
+            if mouse_pos.getX() >= 0.99:
+                builtins.base.win.movePointer(0, 5, int(mouse_properties.getY()))
+            if mouse_pos.getX() <= -0.99:
+                builtins.base.win.movePointer(0, props.getXSize()-5, int(mouse_properties.getY()))
+        return Task.cont
     def acceptEvents(self):
         builtins.base.accept("c", self.changeCamera)
         builtins.base.accept("arrow_left", self.turnLeft)
@@ -140,6 +159,17 @@ class Hero:
         builtins.base.accept(destroy, self.destroy)
         builtins.base.accept(s, self.save)
         builtins.base.accept(l, self.load)
+def trim(i, mn=-1, mx=1):
+    if i < mn:
+        i = mn
+    if i > mx:
+        i = mx
+    return i
+
+
+
+
+
 change_camera_key = "c"
 turn_left_key = "arrow_left"
 turn_right_key = "arrow_right"

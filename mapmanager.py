@@ -32,6 +32,7 @@ class MapManager():
         texture = builtins.loader.loadTexture(self.getTexture(position[2]))
         #self.block.setTexture(texture)
         self.block.setTexture(texture)
+        self.block.setTag("at", str(position))
         new_color = self.getColor(position[2])
         self.block.setColor(new_color)
         self.block.setPos(position)
